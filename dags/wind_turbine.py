@@ -5,18 +5,14 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 
-from airflow.decorators import task_group
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.email import EmailOperator
 from airflow.sensors.filesystem import FileSensor
-from airflow.providers.postgres.operatos.postgres import PostgresOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.models import Variable
 from airflow.utils.task_group import TaskGroup
 import json
 import os
-
-from scipy.special import parameters
-from sqlalchemy.databases import postgres
 
 default_args = {
     'depends_on_past': False,
@@ -27,7 +23,7 @@ default_args = {
     'retrie_delay': timedelta(10)
 }
 
-dag = DAG('wind_turbine_dage',
+dag = DAG('wind_turbine_dag',
           schedule_interval=None, start_date=datetime(2025,1,1),
           default_args=default_args,
           default_view='graph',
@@ -78,7 +74,7 @@ insert_table = PostgresOperator(task_id='insert_table', postgres_conn_id='postgr
 
 
 def check_temperature(**kwargs):
-    value = kwargs['ti'].xcom_pull(task_id='get_data', key='temperature')
+    value = kwargs['ti'].xcom_pull(task_ids='get_data', key='temperature')
     if value is not None:
         value = float(value)
         print('Temperature', value)
